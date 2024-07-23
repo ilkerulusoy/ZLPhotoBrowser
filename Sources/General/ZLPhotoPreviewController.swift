@@ -695,6 +695,35 @@ class ZLPhotoPreviewController: UIViewController {
     }
     
     @objc private func doneBtnClick() {
+        guard let nav = navigationController as? ZLImageNavController else { return }
+        
+        let selectedModels = nav.arrSelectedModels
+        let downloadingModels = selectedModels.filter { !$0.isDownloaded() }
+        
+        if !downloadingModels.isEmpty {
+            showDownloadConfirmationAlert(downloadingModels: downloadingModels, nav: nav)
+        } else {
+            proceedWithSelection()
+        }
+    }
+    
+    private func showDownloadConfirmationAlert(downloadingModels: [ZLPhotoModel], nav: ZLImageNavController) {
+        let alert = UIAlertController(
+            title: localLanguageTextValue(.downloadingInProgress),
+            message: localLanguageTextValue(.downloadConfirmationMessage),
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: localLanguageTextValue(.continueWithoutDownloading), style: .default) { [weak self] _ in
+            self?.proceedWithSelection()
+        })
+        
+        alert.addAction(UIAlertAction(title: localLanguageTextValue(.waitToDownload), style: .cancel))
+        
+        present(alert, animated: true)
+    }
+    
+    private func proceedWithSelection() {
         guard let nav = navigationController as? ZLImageNavController else {
             zlLoggerInDebug("Navigation controller is null")
             return

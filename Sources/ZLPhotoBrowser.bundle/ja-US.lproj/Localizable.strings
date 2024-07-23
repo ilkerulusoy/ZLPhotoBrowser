@@ -72,3 +72,8 @@
 "noTitleAlbumListPlaceholder" = "画像すべて";
 "unableToAccessAllPhotos" = "アルバム内のすべての写真にアクセスできません。\n「写真」内の「すべての写真」 へのアクセスを許可してください。";
 "textStickerRemoveTips" = "ここにドラッグして削除します";
+
+"downloadingInProgress" = "ダウンロード中";
+"downloadConfirmationMessage" = "選択した項目のいくつかはまだダウンロード中です。続行してダウンロードが完了するのを待ちますか？";
+"continueWithoutDownloading" = "ダウンロードせずに続行";
+"waitToDownload" = "ダウンロードを待つ";

@@ -72,3 +72,8 @@
 "noTitleAlbumListPlaceholder" = "所有照片";
 "unableToAccessAllPhotos" = "无法访问相册中所有照片，\n请允许访问「照片」中的「所有照片」。";
 "textStickerRemoveTips" = "拖到此处删除";
+
+"downloadingInProgress" = "正在下载";
+"downloadConfirmationMessage" = "部分选中的项目仍在下载中。您是否要继续并等待下载完成？";
+"continueWithoutDownloading" = "继续而不下载";
+"waitToDownload" = "等待下载";

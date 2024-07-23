@@ -329,6 +329,18 @@ public struct ZLLocalLanguageKey: Hashable {
     
     /// Drag here to remove (拖到此处删除)
     public static let textStickerRemoveTips = ZLLocalLanguageKey(rawValue: "textStickerRemoveTips")
+
+    /// Downloading in Progress
+    public static let downloadingInProgress = ZLLocalLanguageKey(rawValue: "downloadingInProgress")
+    
+    /// Some selected items are still downloading. Do you want to proceed and wait for the download to complete?
+    public static let downloadConfirmationMessage = ZLLocalLanguageKey(rawValue: "downloadConfirmationMessage")
+    
+    /// Continue without downloading
+    public static let continueWithoutDownloading = ZLLocalLanguageKey(rawValue: "continueWithoutDownloading")
+    
+    /// Wait to download
+    public static let waitToDownload = ZLLocalLanguageKey(rawValue: "waitToDownload")
 }
 
 func localLanguageTextValue(_ key: ZLLocalLanguageKey) -> String {

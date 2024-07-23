@@ -72,3 +72,8 @@
 "noTitleAlbumListPlaceholder" = "Tutte le foto";
 "unableToAccessAllPhotos" = "Impossibile accedere a tutte le foto nell'album.\nConsenti l'accesso a \"Tutte le foto\" in \"Foto\"";
 "textStickerRemoveTips" = "Trascina qui per rimuovere";
+
+"downloadingInProgress" = "Download in corso";
+"downloadConfirmationMessage" = "Alcuni elementi selezionati sono ancora in fase di download. Vuoi procedere e attendere il completamento del download?";
+"continueWithoutDownloading" = "Continua senza scaricare";
+"waitToDownload" = "Attendi il download";

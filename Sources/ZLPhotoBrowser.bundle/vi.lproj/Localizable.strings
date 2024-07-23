@@ -72,3 +72,8 @@
 "noTitleAlbumListPlaceholder" = "Tất cả ảnh";
 "unableToAccessAllPhotos" = "Không thể truy cập tất cả ảnh trong album.\nCho phép truy cập vào \"Tất cả ảnh\" trong \"Ành\".";
 "textStickerRemoveTips" = "Kéo vào đây để xóa";
+
+"downloadingInProgress" = "Đang tải xuống";
+"downloadConfirmationMessage" = "Một số mục đã chọn vẫn đang được tải xuống. Bạn có muốn tiếp tục và đợi cho đến khi quá trình tải xuống hoàn tất không?";
+"continueWithoutDownloading" = "Tiếp tục mà không tải xuống";
+"waitToDownload" = "Đợi để tải xuống";

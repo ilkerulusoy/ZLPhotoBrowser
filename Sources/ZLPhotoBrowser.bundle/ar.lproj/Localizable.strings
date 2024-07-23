@@ -72,3 +72,8 @@
 "noTitleAlbumListPlaceholder" = "جميع الصور";
 "unableToAccessAllPhotos" = "يتعذر الوصول إلى جميع الصور في الألبوم ، يرجى السماح بالوصول إلى كل الصور في الصور .";
 "textStickerRemoveTips" = "اسحب هنا للإزالة";
+
+"downloadingInProgress" = "جارٍ التنزيل";
+"downloadConfirmationMessage" = "بعض العناصر المحددة لا تزال قيد التنزيل. هل تريد المتابعة والانتظار حتى اكتمال التنزيل؟";
+"continueWithoutDownloading" = "المتابعة دون تنزيل";
+"waitToDownload" = "الانتظار للتنزيل";

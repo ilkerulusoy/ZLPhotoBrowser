@@ -72,3 +72,8 @@
 "noTitleAlbumListPlaceholder" = "Все фотографии";
 "unableToAccessAllPhotos" = "Невозможно получить доступ к фотографиям в альбоме.\nРазрешить доступ ко \"Всем фотографиям\" в \"Фото\".";
 "textStickerRemoveTips" = "Перетащите сюда, чтобы удалить";
+
+"downloadingInProgress" = "Выполняется загрузка";
+"downloadConfirmationMessage" = "Некоторые выбранные элементы все еще загружаются. Хотите продолжить и дождаться завершения загрузки?";
+"continueWithoutDownloading" = "Продолжить без загрузки";
+"waitToDownload" = "Подождать загрузку";

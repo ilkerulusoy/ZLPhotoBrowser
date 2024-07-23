@@ -37,6 +37,7 @@ public extension ZLPhotoModel {
     }
 }
 
+@objcMembers
 public class ZLPhotoModel: NSObject {
     public let ident: String
     
@@ -45,8 +46,18 @@ public class ZLPhotoModel: NSObject {
     public var type: ZLPhotoModel.MediaType = .unknown
     
     public var duration = ""
+     
+    public var isSelected = false {
+        didSet {
+            fetchBigVideos()
+        }
+    }
     
-    public var isSelected = false
+    public var requestId: PHImageRequestID? = nil
+    
+    @objc dynamic public var progress: CGFloat = 0
+    
+    @objc dynamic public var downloadError: Bool = false
     
     private var pri_dataSize: ZLPhotoConfiguration.KBUnit?
     
@@ -149,6 +160,48 @@ public class ZLPhotoModel: NSObject {
         default:
             return ""
         }
+    }
+    
+    private func cancelFetchBigVideos() {
+        guard let requestId = requestId else {
+            return
+        }
+        
+        if requestId > PHInvalidImageRequestID {
+            PHImageManager.default().cancelImageRequest(requestId)
+        }
+            
+        self.progress = 0
+        self.requestId = nil
+    }
+    
+    private func fetchBigVideos() {
+        cancelFetchBigVideos()
+        
+        if type == .video && asset.zl.isInCloud && isSelected {
+            self.progress = 0.1
+            self.downloadError = false
+
+            let options = PHVideoRequestOptions()
+            options.isNetworkAccessAllowed = true
+            options.deliveryMode = .highQualityFormat
+            options.progressHandler = { [weak self] progress, _, _, _ in
+                if !progress.isEqual(to: 1.0) {
+                    self?.progress = progress
+                }
+            }
+            requestId = PHCachingImageManager().requestAVAsset(forVideo: asset, options: options) { [weak self] avAsset, _, map in
+                if avAsset != nil {
+                    self?.progress = 1.0
+                } else {
+                    self?.downloadError = true
+                }
+            }
+        }
+    }
+    
+    public func isDownloaded() -> Bool {
+        return type == .video ? !asset.zl.isInCloud : true
     }
 }
 

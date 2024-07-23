@@ -72,3 +72,8 @@
 "noTitleAlbumListPlaceholder" = "Tüm Fotoğraflar";
 "unableToAccessAllPhotos" = "Albümdeki tüm fotoğraflara erişilemiyor.\n\"Fotoğraflar\"da \"Tüm Fotoğraflar\"a erişime izin verin.";
 "textStickerRemoveTips" = "Kaldırmak için buraya sürükleyin";
+
+"downloadingInProgress" = "İndirme Devam Ediyor";
+"downloadConfirmationMessage" = "Seçilen öğelerden bazıları hala indiriliyor. Devam etmek ve indirmenin tamamlanmasını beklemek istiyor musunuz?";
+"continueWithoutDownloading" = "İndirmeden devam et";
+"waitToDownload" = "İndirmeyi bekle";

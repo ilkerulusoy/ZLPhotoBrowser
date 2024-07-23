@@ -72,3 +72,8 @@
 "noTitleAlbumListPlaceholder" = "Semua Foto";
 "unableToAccessAllPhotos" = "Tidak dapat mengakses semua foto dalam album.\nBenarkan akses kepada \"Semua Foto\" dalam \"Foto\".";
 "textStickerRemoveTips" = "Seret ke sini untuk mengalih keluar";
+
+"downloadingInProgress" = "Muat Turun Sedang Berlangsung";
+"downloadConfirmationMessage" = "Beberapa item yang dipilih masih dimuat turun. Adakah anda ingin meneruskan dan menunggu muat turun selesai?";
+"continueWithoutDownloading" = "Teruskan tanpa memuat turun";
+"waitToDownload" = "Tunggu untuk memuat turun";

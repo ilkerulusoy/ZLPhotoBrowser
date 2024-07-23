@@ -40,6 +40,8 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
     
     private lazy var editImageTag = UIImageView(image: .zl.getImage("zl_editImage_tag"))
     
+    private lazy var iCloudTag = UIImageView(image: UIImage(systemName: "icloud")?.withTintColor(.white, renderingMode: .alwaysOriginal))
+    
     private lazy var descLabel: UILabel = {
         let label = UILabel()
         label.font = .zl.font(ofSize: 13)
@@ -121,6 +123,9 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
         }
     }
     
+    private var observation: NSKeyValueObservation?
+
+    
     deinit {
         zl_debugPrint("ZLThumbnailPhotoCell deinit")
     }
@@ -143,6 +148,7 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
         containerView.addSubview(indexLabel)
         containerView.addSubview(bottomShadowView)
         bottomShadowView.addSubview(videoTag)
+        bottomShadowView.addSubview(iCloudTag)
         bottomShadowView.addSubview(livePhotoTag)
         bottomShadowView.addSubview(editImageTag)
         bottomShadowView.addSubview(descLabel)
@@ -169,6 +175,7 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
         
         bottomShadowView.frame = CGRect(x: 0, y: bounds.height - 25, width: bounds.width, height: 25)
         videoTag.frame = CGRect(x: 5, y: 1, width: 20, height: 15)
+        iCloudTag.frame = CGRect(x: 30, y: 1, width: 20, height: 15)
         livePhotoTag.frame = CGRect(x: 5, y: -1, width: 20, height: 20)
         editImageTag.frame = CGRect(x: 5, y: -1, width: 20, height: 20)
         descLabel.frame = CGRect(x: 30, y: 1, width: bounds.width - 35, height: 17)
@@ -186,10 +193,18 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
             }
             
             if isSelected {
-                self?.fetchBigImage()
+//                if self?.model.type == .video, self?.model.asset.zl.isInCloud == true {
+//                    self?.fetchBigVideos()
+//                } else {
+                    self?.fetchBigImage()
+//                }
             } else {
                 self?.progressView.isHidden = true
-                self?.cancelFetchBigImage()
+//                if self?.model.type == .video, self?.model.asset.zl.isInCloud == true {
+//                    self?.cancelFetchBigVideos()
+//                } else {
+                    self?.cancelFetchBigImage()
+//                }
             }
         })
     }
@@ -206,18 +221,21 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
         if model.type == .video {
             bottomShadowView.isHidden = false
             videoTag.isHidden = false
+            iCloudTag.isHidden = !model.asset.zl.isInCloud
             livePhotoTag.isHidden = true
             editImageTag.isHidden = true
             descLabel.text = model.duration
         } else if model.type == .gif {
             bottomShadowView.isHidden = !config.allowSelectGif
             videoTag.isHidden = true
+            iCloudTag.isHidden = true
             livePhotoTag.isHidden = true
             editImageTag.isHidden = true
             descLabel.text = "GIF"
         } else if model.type == .livePhoto {
             bottomShadowView.isHidden = !config.allowSelectLivePhoto
             videoTag.isHidden = true
+            iCloudTag.isHidden = true
             livePhotoTag.isHidden = false
             editImageTag.isHidden = true
             descLabel.text = "Live"
@@ -225,6 +243,7 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
             if let _ = model.editImage {
                 bottomShadowView.isHidden = false
                 videoTag.isHidden = true
+                iCloudTag.isHidden = true
                 livePhotoTag.isHidden = true
                 editImageTag.isHidden = false
                 descLabel.text = ""
@@ -247,17 +266,34 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
         btnSelect.isHidden = !showSelBtn
         btnSelect.isUserInteractionEnabled = showSelBtn
         btnSelect.isSelected = model.isSelected
-        
+                
         if model.isSelected {
-            fetchBigImage()
+//            if model.type == .video, model.asset.zl.isInCloud {
+//                fetchBigVideos()
+//            } else {
+                fetchBigImage()
+//            }
         } else {
-            cancelFetchBigImage()
+//            if model.type == .video, model.asset.zl.isInCloud {
+//                cancelFetchBigVideos()
+//            } else {
+                cancelFetchBigImage()
+//            }
         }
         
         if let editImage = model.editImage {
             imageView.image = editImage
         } else {
             fetchSmallImage()
+        }
+        
+        observation = model.observe(\.progress, options: [.new]) { [weak self] model, change in
+            guard let newValue = change.newValue else { return }
+            if newValue.isEqual(to: 1.0) {
+                DispatchQueue.main.async { [weak self] in
+                    self?.iCloudTag.isHidden = !model.asset.zl.isInCloud
+                }
+            }
         }
     }
     
@@ -287,6 +323,42 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
             }
         })
     }
+    
+//    private func fetchBigVideos() {
+//        cancelFetchBigVideos()
+//
+//        let options = PHVideoRequestOptions()
+//        options.isNetworkAccessAllowed = true
+//        options.deliveryMode = .highQualityFormat
+//        options.progressHandler = { [weak self] progress, _, _, _ in
+//            if self?.model.isSelected == true {
+//                DispatchQueue.main.async { [weak self] in
+//                    self?.progressView.isHidden = false
+//                    self?.progressView.progress = max(0.1, progress)
+//                    self?.imageView.alpha = 0.5
+//                    if progress >= 1 {
+//                        self?.resetProgressViewStatus()
+//                    }
+//                }
+//            } else {
+//                self?.cancelFetchBigVideos()
+//            }
+//        }
+//        bigImageReqeustID = PHCachingImageManager().requestAVAsset(forVideo: model.asset, options: options) { [weak self] avAsset, _, _ in
+//            DispatchQueue.main.async { [weak self] in
+//                self?.iCloudTag.isHidden = true
+//                self?.resetProgressViewStatus()
+//            }
+//        }
+//    }
+    
+//    private func cancelFetchBigVideos() {
+//        if bigImageReqeustID > PHInvalidImageRequestID {
+//            PHImageManager.default().cancelImageRequest(bigImageReqeustID)
+//        }
+//        
+//        resetProgressViewStatus()
+//    }
     
     private func fetchBigImage() {
         cancelFetchBigImage()
@@ -318,4 +390,11 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
         progressView.isHidden = true
         imageView.alpha = 1
     }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        observation?.invalidate()
+        observation = nil
+    }
+    
 }

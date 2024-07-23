@@ -114,6 +114,21 @@ class ZLThumbnailViewController: UIViewController {
         return btn
     }()
     
+    private lazy var selectedMediaCollectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        layout.itemSize = CGSize(width: 40, height: 40)
+        layout.minimumInteritemSpacing = 10
+        
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.backgroundColor = .clear
+        collectionView.showsHorizontalScrollIndicator = false
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(SelectedMediaCell.self, forCellWithReuseIdentifier: "SelectedMediaCell")
+        return collectionView
+    }()
+    
     /// 所有滑动经过的indexPath
     private lazy var arrSlideIndexPaths: [IndexPath] = []
     
@@ -302,7 +317,7 @@ class ZLThumbnailViewController: UIViewController {
         
         let showBottomToolBtns = shouldShowBottomToolBar()
         
-        let bottomViewH: CGFloat
+        var bottomViewH: CGFloat = 0
         if showLimitAuthTipsView, showBottomToolBtns {
             bottomViewH = ZLLayout.bottomToolViewH + ZLLimitedAuthorityTipsView.height
         } else if showLimitAuthTipsView {
@@ -313,6 +328,7 @@ class ZLThumbnailViewController: UIViewController {
             bottomViewH = 0
         }
         
+        
         let totalWidth = view.zl.width - insets.left - insets.right
         // 非刘海屏，在下拉返回动画时候，状态栏的隐藏和显示之间的切换会导致Collectionview的抖动，这里给个Y值，避开状态栏
         let collectionViewY = deviceIsFringeScreen() ? 0 : insets.top
@@ -320,10 +336,10 @@ class ZLThumbnailViewController: UIViewController {
             x: insets.left,
             y: collectionViewY,
             width: totalWidth,
-            height: view.frame.height - collectionViewY
+            height: view.frame.height - collectionViewY - 82 - insets.bottom - bottomViewH
         )
         collectionView.contentInset = UIEdgeInsets(top: collectionViewInsetTop, left: 0, bottom: bottomViewH, right: 0)
-        collectionView.scrollIndicatorInsets = UIEdgeInsets(top: insets.top, left: 0, bottom: bottomViewH, right: 0)
+        collectionView.scrollIndicatorInsets = UIEdgeInsets(top: insets.top, left: 0, bottom: bottomViewH , right: 0)
 
         let scrollToBottomSize = 35.0
         let scrollToBottomX = view.zl.width - insets.right - scrollToBottomSize - 22
@@ -382,6 +398,14 @@ class ZLThumbnailViewController: UIViewController {
             
             refreshDoneBtnFrame()
         }
+        
+        selectedMediaCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            selectedMediaCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            selectedMediaCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+            selectedMediaCollectionView.bottomAnchor.constraint(equalTo: bottomView.topAnchor, constant: -16),
+            selectedMediaCollectionView.heightAnchor.constraint(equalToConstant: 50)
+        ])
     }
     
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -402,6 +426,8 @@ class ZLThumbnailViewController: UIViewController {
         view.addSubview(bottomView)
         view.addSubview(scrollToBottomBtn)
         
+        view.addSubview(selectedMediaCollectionView)
+
         if let effect = ZLPhotoUIConfiguration.default().bottomViewBlurEffectOfAlbumList {
             bottomBlurView = UIVisualEffectView(effect: effect)
             bottomView.addSubview(bottomBlurView!)
@@ -596,7 +622,48 @@ class ZLThumbnailViewController: UIViewController {
         (navigationController as? ZLImageNavController)?.isSelectedOriginal = originalBtn.isSelected
     }
     
+//    @objc private func doneBtnClick() {
+//        let nav = navigationController as? ZLImageNavController
+//        if let block = ZLPhotoConfiguration.default().operateBeforeDoneAction {
+//            block(self) { [weak nav] in
+//                nav?.selectImageBlock?()
+//            }
+//        } else {
+//            nav?.selectImageBlock?()
+//        }
+//    }
+    
     @objc private func doneBtnClick() {
+        guard let nav = navigationController as? ZLImageNavController else { return }
+        
+        let selectedModels = nav.arrSelectedModels
+        let downloadingModels = selectedModels.filter { !$0.isDownloaded() }
+        
+        if !downloadingModels.isEmpty {
+            showDownloadConfirmationAlert(downloadingModels: downloadingModels, nav: nav)
+        } else {
+            proceedWithSelection()
+        }
+    }
+    
+    
+    private func showDownloadConfirmationAlert(downloadingModels: [ZLPhotoModel], nav: ZLImageNavController) {
+        let alert = UIAlertController(
+            title: localLanguageTextValue(.downloadingInProgress),
+            message: localLanguageTextValue(.downloadConfirmationMessage),
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: localLanguageTextValue(.continueWithoutDownloading), style: .default) { [weak self] _ in
+            self?.proceedWithSelection()
+        })
+        
+        alert.addAction(UIAlertAction(title: localLanguageTextValue(.waitToDownload), style: .cancel))
+        
+        present(alert, animated: true)
+    }
+    
+    private func proceedWithSelection() {
         let nav = navigationController as? ZLImageNavController
         if let block = ZLPhotoConfiguration.default().operateBeforeDoneAction {
             block(self) { [weak nav] in
@@ -768,6 +835,8 @@ class ZLThumbnailViewController: UIViewController {
                 }
             }
         }
+        
+        refreshSelectedMediaCollectionView()
     }
     
     private func autoScrollWhenSlideSelect(_ pan: UIPanGestureRecognizer) {
@@ -1182,95 +1251,126 @@ extension ZLThumbnailViewController: UICollectionViewDataSource, UICollectionVie
         
         let totalW = collectionView.bounds.width - CGFloat(columnCount - 1) * uiConfig.minimumInteritemSpacing
         let singleW = totalW / CGFloat(columnCount)
-        return CGSize(width: singleW, height: singleW)
+        if collectionView == selectedMediaCollectionView {
+            return CGSize(width: singleW/2, height: singleW/2)
+        } else {
+            return CGSize(width: singleW, height: singleW)
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return arrDataSources.count + offset
+        if collectionView == selectedMediaCollectionView {
+            guard let nav = navigationController as? ZLImageNavController else {
+                return 0
+            }
+            return nav.arrSelectedModels.count
+        } else {
+            return arrDataSources.count + offset
+        }
+    }
+    
+    func refreshSelectedMediaCollectionView() {
+        selectedMediaCollectionView.reloadData()
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let config = ZLPhotoConfiguration.default()
-        let uiConfig = ZLPhotoUIConfiguration.default()
-        let nav = navigationController as? ZLImageNavController
-        
-        if showCameraCell, (uiConfig.sortAscending && indexPath.row == arrDataSources.count) || (!uiConfig.sortAscending && indexPath.row == 0) {
-            // camera cell
+        if collectionView == selectedMediaCollectionView {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SelectedMediaCell", for: indexPath) as! SelectedMediaCell
+                    
+            if let nav = navigationController as? ZLImageNavController,
+               indexPath.item < nav.arrSelectedModels.count {
+                let model = nav.arrSelectedModels[indexPath.item]
+                ZLPhotoManager.fetchImage(for: model.asset, size: CGSize(width: 160, height: 160)) { image, _ in
+                    if let image = image {
+                        cell.configure(with: image, photo: model)
+                    }
+                }
+            }
+            return cell
+        } else {
+            let config = ZLPhotoConfiguration.default()
+            let uiConfig = ZLPhotoUIConfiguration.default()
+            let nav = navigationController as? ZLImageNavController
             
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLCameraCell.zl.identifier, for: indexPath) as! ZLCameraCell
-            
-            if uiConfig.showCaptureImageOnTakePhotoBtn {
-                cell.startCapture()
+            if showCameraCell, (uiConfig.sortAscending && indexPath.row == arrDataSources.count) || (!uiConfig.sortAscending && indexPath.row == 0) {
+                // camera cell
+                
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLCameraCell.zl.identifier, for: indexPath) as! ZLCameraCell
+                
+                if uiConfig.showCaptureImageOnTakePhotoBtn {
+                    cell.startCapture()
+                }
+                
+                cell.isEnable = (nav?.arrSelectedModels.count ?? 0) < config.maxSelectCount
+                
+                return cell
             }
             
-            cell.isEnable = (nav?.arrSelectedModels.count ?? 0) < config.maxSelectCount
+            if #available(iOS 14, *) {
+                if self.showAddPhotoCell, (uiConfig.sortAscending && indexPath.row == self.arrDataSources.count - 1 + self.offset) || (!uiConfig.sortAscending && indexPath.row == self.offset - 1) {
+                    return collectionView.dequeueReusableCell(withReuseIdentifier: ZLAddPhotoCell.zl.identifier, for: indexPath)
+                }
+            }
+            
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLThumbnailPhotoCell.zl.identifier, for: indexPath) as! ZLThumbnailPhotoCell
+            
+            let model: ZLPhotoModel
+            
+            if !uiConfig.sortAscending {
+                model = arrDataSources[indexPath.row - offset]
+            } else {
+                model = arrDataSources[indexPath.row]
+            }
+            
+            cell.selectedBlock = { [weak self, weak nav] block in
+                if !model.isSelected {
+                    let currentSelectCount = nav?.arrSelectedModels.count ?? 0
+                    guard canAddModel(model, currentSelectCount: currentSelectCount, sender: self) else {
+                        return
+                    }
+                    
+                    downloadAssetIfNeed(model: model, sender: self) {
+                        if self?.shouldDirectEdit(model) == false {
+                            model.isSelected = true
+                            nav?.arrSelectedModels.append(model)
+                            block(true)
+                            
+                            config.didSelectAsset?(model.asset)
+                            self?.refreshCellIndexAndMaskView()
+                            
+                            if config.maxSelectCount == 1, !config.allowPreviewPhotos {
+                                self?.doneBtnClick()
+                            }
+                            
+                            self?.resetBottomToolBtnStatus()
+                        }
+                    }
+                } else {
+                    model.isSelected = false
+                    nav?.arrSelectedModels.removeAll { $0 == model }
+                    block(false)
+                    
+                    config.didDeselectAsset?(model.asset)
+                    self?.refreshCellIndexAndMaskView()
+                    
+                    self?.resetBottomToolBtnStatus()
+                }
+                self?.refreshSelectedMediaCollectionView()
+            }
+            
+            if config.showSelectedIndex,
+               let index = nav?.arrSelectedModels.firstIndex(where: { $0 == model }) {
+                setCellIndex(cell, showIndexLabel: true, index: index + config.initialIndex)
+            } else {
+                cell.indexLabel.isHidden = true
+            }
+            
+            setCellMaskView(cell, isSelected: model.isSelected, model: model)
+            
+            cell.model = model
             
             return cell
         }
-        
-        if #available(iOS 14, *) {
-            if self.showAddPhotoCell, (uiConfig.sortAscending && indexPath.row == self.arrDataSources.count - 1 + self.offset) || (!uiConfig.sortAscending && indexPath.row == self.offset - 1) {
-                return collectionView.dequeueReusableCell(withReuseIdentifier: ZLAddPhotoCell.zl.identifier, for: indexPath)
-            }
-        }
-        
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ZLThumbnailPhotoCell.zl.identifier, for: indexPath) as! ZLThumbnailPhotoCell
-        
-        let model: ZLPhotoModel
-        
-        if !uiConfig.sortAscending {
-            model = arrDataSources[indexPath.row - offset]
-        } else {
-            model = arrDataSources[indexPath.row]
-        }
-        
-        cell.selectedBlock = { [weak self, weak nav] block in
-            if !model.isSelected {
-                let currentSelectCount = nav?.arrSelectedModels.count ?? 0
-                guard canAddModel(model, currentSelectCount: currentSelectCount, sender: self) else {
-                    return
-                }
-                
-                downloadAssetIfNeed(model: model, sender: self) {
-                    if self?.shouldDirectEdit(model) == false {
-                        model.isSelected = true
-                        nav?.arrSelectedModels.append(model)
-                        block(true)
-                        
-                        config.didSelectAsset?(model.asset)
-                        self?.refreshCellIndexAndMaskView()
-                        
-                        if config.maxSelectCount == 1, !config.allowPreviewPhotos {
-                            self?.doneBtnClick()
-                        }
-                        
-                        self?.resetBottomToolBtnStatus()
-                    }
-                }
-            } else {
-                model.isSelected = false
-                nav?.arrSelectedModels.removeAll { $0 == model }
-                block(false)
-                
-                config.didDeselectAsset?(model.asset)
-                self?.refreshCellIndexAndMaskView()
-                
-                self?.resetBottomToolBtnStatus()
-            }
-        }
-        
-        if config.showSelectedIndex,
-           let index = nav?.arrSelectedModels.firstIndex(where: { $0 == model }) {
-            setCellIndex(cell, showIndexLabel: true, index: index + config.initialIndex)
-        } else {
-            cell.indexLabel.isHidden = true
-        }
-        
-        setCellMaskView(cell, isSelected: model.isSelected, model: model)
-        
-        cell.model = model
-        
-        return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -1291,6 +1391,10 @@ extension ZLThumbnailViewController: UICollectionViewDataSource, UICollectionVie
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if collectionView == selectedMediaCollectionView {
+            return
+        }
+        
         let cell = collectionView.cellForItem(at: indexPath)
         if let cell = cell as? ZLCameraCell {
             if cell.isEnable {

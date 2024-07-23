@@ -72,3 +72,8 @@
 "noTitleAlbumListPlaceholder" = "All Photos";
 "unableToAccessAllPhotos" = "Unable to access all photos in the album.\nAllow access to \"All Photos\" in \"Photos\".";
 "textStickerRemoveTips" = "Drag here to remove";
+
+"downloadingInProgress" = "Downloading in Progress";
+"downloadConfirmationMessage" = "Some selected items are still downloading. Do you want to proceed and wait for the download to complete?";
+"continueWithoutDownloading" = "Continue without downloading";
+"waitToDownload" = "Wait to download";

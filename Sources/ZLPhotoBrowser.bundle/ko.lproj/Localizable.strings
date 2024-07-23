@@ -72,3 +72,8 @@
 "noTitleAlbumListPlaceholder" = "모든 사진";
 "unableToAccessAllPhotos" = "앨범 사진에 접근할 수 없습니다.\n\"사진\"에서 \"모든 사진\"에 대한 접근을 허용합니다.";
 "textStickerRemoveTips" = "제거하려면 여기로 드래그하세요";
+
+"downloadingInProgress" = "다운로드 진행 중";
+"downloadConfirmationMessage" = "선택한 항목 중 일부가 아직 다운로드 중입니다. 계속 진행하고 다운로드가 완료될 때까지 기다리시겠습니까?";
+"continueWithoutDownloading" = "다운로드 없이 계속";
+"waitToDownload" = "다운로드 대기";

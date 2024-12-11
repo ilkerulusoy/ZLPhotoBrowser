@@ -221,7 +221,7 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
         if model.type == .video {
             bottomShadowView.isHidden = false
             videoTag.isHidden = false
-            iCloudTag.isHidden = !model.asset.zl.isInCloud
+            iCloudTag.isHidden = model.isDownloaded()
             livePhotoTag.isHidden = true
             editImageTag.isHidden = true
             descLabel.text = model.duration
@@ -291,7 +291,7 @@ class ZLThumbnailPhotoCell: UICollectionViewCell {
             guard let newValue = change.newValue else { return }
             if newValue.isEqual(to: 1.0) {
                 DispatchQueue.main.async { [weak self] in
-                    self?.iCloudTag.isHidden = !model.asset.zl.isInCloud
+                    self?.iCloudTag.isHidden = model.isDownloaded()
                 }
             }
         }

@@ -54,6 +54,7 @@ public class ZLPhotoModel: NSObject {
     }
     
     public var requestId: PHImageRequestID? = nil
+    public var photoRequestId: PHContentEditingInputRequestID? = nil
     
     @objc dynamic public var progress: CGFloat = 0
     
@@ -163,16 +164,29 @@ public class ZLPhotoModel: NSObject {
     }
     
     private func cancelFetchBigVideos() {
-        guard let requestId = requestId else {
-            return
-        }
-        
-        if requestId > PHInvalidImageRequestID {
-            PHImageManager.default().cancelImageRequest(requestId)
-        }
+        if asset.mediaType == .video {
+            guard let requestId = requestId else {
+                return
+            }
             
-        self.progress = 0
-        self.requestId = nil
+            if requestId > PHInvalidImageRequestID {
+                PHImageManager.default().cancelImageRequest(requestId)
+            }
+            
+            self.progress = 0
+            self.requestId = nil
+        } else if asset.mediaType == .image {
+            guard let requestId = photoRequestId else {
+                return
+            }
+            
+            if requestId > PHInvalidImageRequestID {
+                asset.cancelContentEditingInputRequest(requestId)
+            }
+            
+            self.progress = 0
+            self.photoRequestId = nil
+        }
     }
     
     private func fetchBigVideos() {
@@ -197,11 +211,41 @@ public class ZLPhotoModel: NSObject {
                     self?.downloadError = true
                 }
             }
+        } else if type == .image && asset.zl.isInCloud && isSelected {
+            self.progress = 0.1
+            self.downloadError = false
+
+//            let options = PHContentEditingInputRequestOptions()
+//            options.isNetworkAccessAllowed = true
+//            options.deliveryMode = .highQualityFormat
+//            options.progressHandler = { [weak self] progress, _, _, _ in
+//                if !progress.isEqual(to: 1.0) {
+//                    self?.progress = progress
+//                }
+//            }
+            
+            let options: PHContentEditingInputRequestOptions = PHContentEditingInputRequestOptions()
+            options.canHandleAdjustmentData = {(adjustmeta: PHAdjustmentData) -> Bool in
+                return true
+            }
+            options.progressHandler = { [weak self] progress, _ in
+                if !progress.isEqual(to: 1.0) {
+                    self?.progress = progress
+                }
+            }
+            options.isNetworkAccessAllowed = true
+            photoRequestId = asset.requestContentEditingInput(with: options, completionHandler: { [weak self] (contentEditingInput, info) in
+                if contentEditingInput != nil {
+                    self?.progress = 1.0
+                } else {
+                    self?.downloadError = true
+                }
+            })
         }
     }
     
     public func isDownloaded() -> Bool {
-        return type == .video ? !asset.zl.isInCloud : true
+        return type == .video ? (!asset.zl.isInCloud || progress.isEqual(to: 1.0)) : true
     }
 }
 

@@ -23,7 +23,10 @@ class SelectedMediaCell: UICollectionViewCell {
     
     private lazy var bottomShadowView: UIImageView = {
         let shadowView = UIImageView(image: .zl.getImage("zl_shadow"))
-        shadowView.alpha = 0 // Initially hidden
+        shadowView.contentMode = .scaleAspectFit
+        shadowView.backgroundColor = .black
+        shadowView.alpha = 0.6
+//        shadowView.alpha = 0 // Initially hidden
         return shadowView
     }()
     
@@ -51,11 +54,13 @@ class SelectedMediaCell: UICollectionViewCell {
         
         bottomShadowView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
+            bottomShadowView.topAnchor.constraint(equalTo: contentView.topAnchor),
             bottomShadowView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             bottomShadowView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             bottomShadowView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            bottomShadowView.heightAnchor.constraint(equalTo: contentView.heightAnchor, multiplier: 0.5) // Adjust this value to control shadow height
+            bottomShadowView.heightAnchor.constraint(equalTo: contentView.heightAnchor) // Adjust this value to control shadow height
         ])
+        bottomShadowView.isHidden = true
         
         progressView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -107,29 +112,23 @@ class SelectedMediaCell: UICollectionViewCell {
           progressView.isHidden = hasError
           
           if hasError {
-              UIView.animate(withDuration: 0.3) {
-                  self.bottomShadowView.alpha = 0.6
-              }
+              self.bottomShadowView.isHidden = true
           }
       }
       
     
     func updateProgressUI(_ progress: CGFloat) {
-        if progress < 0.99999 {
+        if progress < 0.99999 && model?.isDownloaded() == false {
             progressView.isHidden = false
             progressView.progress = progress
             
             // Fade in the shadow
             UIView.animate(withDuration: 0.3) {
-                self.bottomShadowView.alpha = 0.6 // Adjust this value to control shadow intensity
+                self.bottomShadowView.isHidden = false
             }
         } else {
             progressView.isHidden = true
-            
-            // Fade out the shadow
-            UIView.animate(withDuration: 0.3) {
-                self.bottomShadowView.alpha = 0
-            }
+            bottomShadowView.isHidden = true
         }
     }
     
@@ -141,6 +140,6 @@ class SelectedMediaCell: UICollectionViewCell {
         errorObservation = nil
         progressView.isHidden = true
         progressView.progress = 0
-        bottomShadowView.alpha = 0
+        bottomShadowView.isHidden = true
     }
 }
